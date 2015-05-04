@@ -3,13 +3,14 @@
 * by
 * Chaitali Gondhalekar
 * Yifeng Yuan
-* 
+* Peter Gebhard
+*
 * This code is for right hand unit!
 */
 #include "main.h"
 
 int main() {
-    
+
     /*initialize storage for sensor data*/
     buf[0] = 0;
     buf[1] = 0;
@@ -21,8 +22,8 @@ int main() {
     wait_ms(10);//Wait at least one millisecond
     rst1 = 1;//Set reset pin to 1
     wait_ms(10);//Wait another millisecond
-       
-    //vibration motor 
+
+    //vibration motor
     vibrate = 0;
     //detect pinch - pressure sensors
     rightTurn.rise(&turnRight);
@@ -32,7 +33,7 @@ int main() {
 
     //acceleration plot
     x_ax = 0.0;
-    
+
     /** detect closed fist **/
     quit = false; start = false; debounce = false;
     battery_flag = '1';//initialize, battery is good
@@ -40,10 +41,10 @@ int main() {
     flex.fall(&unflexed);
     //check battery level every 10 seconds
     timerBattery.attach(&CheckBattery,10.0);
-    
+
     usb.printf("starting transmission!\r\n");
     xbee1.baud(9600);
-    
+
 
     while(!quit){
 
@@ -67,35 +68,35 @@ int main() {
                 quit = true;
 //            usb.printf("implementing correct option: %d\r\n", received);
         }
-        
+
         while(playGame){
-            if(xbee1.readable()) 
+            if(xbee1.readable())
                 backToMenu();
             CheckSpeed();
-            //DisplayLED();    
+            //DisplayLED();
             /********************sending data***********************/
             decode();
             xbee1.putc(send);
-            wait_ms(10);    
-            xbee1.putc('\n');  
-            wait_ms(10);    
+            wait_ms(10);
+            xbee1.putc('\n');
+            wait_ms(10);
             wait_ms(500);
         }//play game
-        
+
 //        usb.printf("plotting data\r\n");
         while(plotData){
-            
+
             CheckSpeed();
             float l = leftData.read()*100;
             xbee1.putc(l);
-            xbee1.putc(' '); 
+            xbee1.putc(' ');
             float r = rightData.read()*100;
             xbee1.putc(r);
             xbee1.putc(' ');
             xbee1.putc(x_ax);
             xbee1.putc('\n');
 //            usb.printf("L: %f; R: %f Ac: %f\r\n",l,r,x_ax);
-            wait_ms(500);  
+            wait_ms(500);
         }//plot data
     }//quit
 }
@@ -106,17 +107,17 @@ int main() {
 void decode(){
     send = 0;
     if(LEFT == 0){//left
-        //reset 7th bit 
+        //reset 7th bit
         send &= ~(1 << HAND);
     }
-        
+
     //bits 6,5 - buf[0] - fwd/back/freeze
     int left = ~0 - ((1<< MOTION_MSB) - 1);
     int right = ((1<< MOTION_LSB)-1);
     int mask = left | right;
     send = (send & mask) | (buf[0] << MOTION_LSB );
 
-//    //bits 4,3,2 - buf[1] - 
+//    //bits 4,3,2 - buf[1] -
     left = ~0 - ((1<< SPEED_MSB) - 1);
     right = ((1<< SPEED_LSB) - 1);
     mask = left | right;
@@ -124,7 +125,7 @@ void decode(){
 
 //    //bit 1 - buf[2]
     if(buf[2] > 0) { //pressed
-        //set bit 
+        //set bit
         send |= 1 << LEFT_TURN;
     }
     if(buf[3] > 0){//pressed
@@ -137,13 +138,13 @@ void decode(){
 * derives speed of hand rotation from accelerometer readings
 */
 void CheckSpeed(){
-    
+
     int speed;
     int num_data = 10;
     float ax_raw_avg = 0.0;
     float x_temp;
     float z_temp;
-    
+
     //detecing speed
     for (int j=0;j<num_data;j++) {
         axcl.read_xz(&x_temp,&z_temp);
@@ -157,7 +158,7 @@ void CheckSpeed(){
 }
 
 /**
-* maps speed of rotation to a value 1 through 5 
+* maps speed of rotation to a value 1 through 5
 */
 int GearBox_ax(float speed) {
     if (speed <= 0.25) {
@@ -181,7 +182,7 @@ int GearBox_ax(float speed) {
 * resets count to 0 if count reaches 5 or interval is over
 */
 void turnRight(){
-    
+
     if(turnCountRight == 0){
         timerRight.attach(&overflowRight, 5); //start timer
     }
@@ -201,7 +202,7 @@ void turnRight(){
 * resets count to 0 if count reaches 5 or interval is over
 */
 void turnLeft(){
-    
+
     if(turnCountLeft == 0){
         timerLeft.attach(&overflowLeft, 5); //start timer
     }
@@ -211,38 +212,38 @@ void turnLeft(){
         //reset the count after 90 deg turn
         turnCountLeft = 0;
     }
-    turnCountLeft++;  
-    buf[2] = turnCountLeft; 
+    turnCountLeft++;
+    buf[2] = turnCountLeft;
 }
 
 /**
 * called when middle finger pinch time interval is over
 * resets tap count to 0
-*/           
+*/
 void overflowRight(){
-    
+
     timerRight.detach(); //stop timer
     turnCountRight = 0;
     buf[3] = 0;
-} 
+}
 
 /**
 * called when index finger pinch time interval is over
 * resets tap count to 0
-*/ 
+*/
 void overflowLeft(){
-    
+
     timerLeft.detach(); //stop timer
     turnCountLeft = 0;
     buf[2] = 0;
-}   
+}
 
 /**
 * called when user flexes his index hand
 * takes care of debouncing
 */
 void flexed() {
-    
+
     if(!start){
         flexInterval.start();
         start = true;
@@ -252,11 +253,11 @@ void flexed() {
     else{
         if(flexInterval.read_ms() > 50)  {//valid flex
             flexInterval.stop();
-            flexInterval.reset(); 
+            flexInterval.reset();
             start = false;
-            debounce = true;  
+            debounce = true;
         }
-    }   
+    }
 }
 
 /**
@@ -268,17 +269,17 @@ void unflexed() {
     if(start && !debounce && t > 80) { //valid unflex
         buf[0] = 0;//forward
         flexInterval.stop();
-        flexInterval.reset();  
-        start = false;     
+        flexInterval.reset();
+        start = false;
         debounce = false;
         unflexInterval.start();
     }
-    
+
 }
 
 /**
 * called once per iteration of loop
-* checks if battery voltage is below threshold value 
+* checks if battery voltage is below threshold value
 * if yes, sets a flag to indicate so
 */
 void CheckBattery() {
@@ -319,11 +320,11 @@ void DisplayLED() {
 
 /**
 * called once per iteration of loop
-* processes message received from Hub 
+* processes message received from Hub
 * decides state of the game
 */
 void backToMenu(){
-    
+
         int8_t received = xbee1.getc();
         if(received == 4){
             playGame = false; plotData = false;
@@ -337,7 +338,7 @@ void backToMenu(){
 
 /**
 * called once per loop
-* processes message received from Hub 
+* processes message received from Hub
 * decides state of the game
 */
 void isGameOver(){
@@ -352,7 +353,7 @@ void isGameOver(){
 
 /**
 * called when after 1 s vibration interval ends
-* stops the ticker and vibration motor 
+* stops the ticker and vibration motor
 */
 void vibration(){
 
