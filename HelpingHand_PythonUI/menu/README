@@ -1,0 +1,53 @@
+MenuClass_V1.0.3
+Copyright 2009 Scott Barlow
+================================================================================
+
+This is a pygame/python Menu Class.  It is designed to be very flexible and can
+be changed and updated dynamically and at any time.  Buttons can be removed or
+added at any time as well.
+
+
+About
+================================================================================
+
+This is python class using pygame to create a flexible graphical menu system.
+A simple and more complex example are included to show some of the features of
+the class.  See the top of each source file for more information.
+
+
+Mini User Guide
+================================================================================
+
+See the top of each of the 2 example source files for instructions.  In other
+projects, you would only need the menu.py file (the actual class) to use this
+class.
+
+
+Web sites (And for reporting bugs)
+================================================================================
+
+This menu class is hosted at two sites:
+   Google Code:   http://code.google.com/p/python-pygame-menu-class/
+   Pygame:        http://www.pygame.org/project/1260/
+
+
+License
+================================================================================
+
+This class is released under the GNU General Public License.  Essentially, you
+may freely copy and use this source code.  See the 'license' file for full
+details.
+
+
+Changelog
+================================================================================
+
+V1.0.0 (Aug 22, 2009)
+   * Initial Release
+
+V1.0.3 (Aug 24, 2009)
+   * OS compatibility (with mac) - change is only in example.py
+   * cMenu.set_font() bug fix (needed to update width/height of text buttons
+     when the font is changed
+   * Added ability to refresh entire screen when entering a menu from another
+     state
